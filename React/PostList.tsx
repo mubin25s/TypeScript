@@ -16,7 +16,7 @@ const PostList: React.FC = () => {
             try {
                 const response = await fetch('https://jsonplaceholder.typicode.com/posts?_limit=5');
                 if (!response.ok) throw new Error('Failed to fetch');
-                const data = await response.json();
+                const data: Post[] = await response.json();
                 setPosts(data);
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'An error occurred');

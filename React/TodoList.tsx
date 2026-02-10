@@ -38,7 +38,7 @@ const TodoList: React.FC = () => {
                 <input
                     type="text"
                     value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInputValue(e.target.value)}
                     className="flex-1 border rounded px-3 py-2"
                     placeholder="Add a new task..."
                 />
