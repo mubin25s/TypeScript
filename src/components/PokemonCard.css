@@ -125,3 +125,24 @@
 .type-badge.type-steel { background: var(--type-steel); }
 .type-badge.type-flying { background: var(--type-flying); }
 
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+  .card-image-container {
+    height: 180px;
+    padding: 1.5rem;
+  }
+  .card-image {
+    width: 140px;
+    height: 140px;
+  }
+  .card-content {
+    padding: 1.2rem 1.5rem;
+  }
+  .card-name {
+    font-size: 1.1rem;
+  }
+  .pokemon-card {
+    border-radius: 16px;
+  }
+}
+
