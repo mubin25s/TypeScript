@@ -9,8 +9,12 @@ const PokemonCard = ({ pokemon, index }) => {
 
     const mainType = types && types[0] ? types[0].type.name : 'normal';
 
+    const handleCardClick = () => {
+        sessionStorage.setItem('pokedex_scroll_y', window.pageYOffset.toString());
+    };
+
     return (
-        <Link to={`/pokemon/${name}`} className="card-link">
+        <Link to={`/pokemon/${name}`} className="card-link" onClick={handleCardClick}>
             <motion.div
                 className={`pokemon-card type-${mainType}`}
                 whileHover={{ y: -10, scale: 1.02 }}

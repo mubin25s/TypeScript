@@ -8,8 +8,17 @@
     position: relative;
     padding: 2rem;
     overflow-x: hidden;
-    background: radial-gradient(circle at 50% 50%, rgba(20, 20, 24, 1) 0%, rgba(10, 10, 12, 1) 100%);
-    transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    background: radial-gradient(circle at 50% 120%, var(--type-color), transparent), #0a0a0c;
+    transition: all 0.3s ease;
+}
+
+.gen-loader {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #0a0a0c;
 }
 
 /* Dynamic Background Glow based on type */
@@ -322,19 +331,45 @@
     padding-bottom: 0.5rem;
 }
 
-@media (max-width: 1024px) {
-    .stats-hud {
-        grid-template-columns: 1fr;
-        gap: 2rem;
-        padding: 1rem;
-    }
-    .carousel-card {
-        width: 300px;
-        height: 300px;
-        margin-left: -150px;
-        margin-top: -150px;
-    }
-    .hero-name {
-        font-size: 3rem;
-    }
+.stats-grid-simple {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+    width: 100%;
+}
+
+.simple-stat-row {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.stat-label-simple {
+    width: 100px;
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: var(--text-secondary);
+    letter-spacing: 1px;
+}
+
+.stat-bar-bg {
+    flex: 1;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.stat-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.6s ease-out;
+}
+
+.stat-value-simple {
+    width: 30px;
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: #fff;
+    text-align: right;
 }

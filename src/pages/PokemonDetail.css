@@ -1,18 +1,10 @@
 .detail-container {
   min-height: 100vh;
+  width: 100%;
   position: relative;
-  overflow: hidden;
-  background: var(--bg-primary);
-  transition: background-color 0.8s ease;
-  z-index: 1000;
-}
-
-.detail-loader {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    background: var(--bg-primary);
+  background: #0a0a0c;
+  display: flex;
+  flex-direction: column;
 }
 
 .back-btn {
@@ -27,45 +19,33 @@
   height: 50px;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  position: fixed;
+  position: absolute;
   top: 2rem;
   left: 2rem;
-  z-index: 100;
-  transition: all 0.3s ease;
-}
-
-.back-btn:hover {
-  transform: scale(1.05);
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.3);
+  z-index: 1000;
 }
 
 .detail-card {
   width: 100%;
-  margin: 0 auto;
-  position: relative;
-  z-index: 5;
+  flex: 1;
+  display: flex;
 }
 
-.minimal-card {
+.error-message-center {
     display: flex;
+    flex-direction: column;
     justify-content: center;
-    align-items: flex-start;
-    min-height: 100vh;
+    align-items: center;
+    height: 100vh;
+    color: #fff;
+    text-align: center;
 }
 
-@media (max-width: 768px) {
-  .detail-card {
-    padding: 2rem 1rem;
-  }
-  
-  .physical-stats {
-    flex-wrap: wrap;
-    gap: 1rem;
-  }
-  
-  .stat-row {
-    grid-template-columns: 100px 1fr 30px;
-    font-size: 0.9rem;
-  }
+.retry-btn {
+    margin-top: 1rem;
+    padding: 0.8rem 2rem;
+    background: var(--accent);
+    color: white;
+    border-radius: 8px;
+    font-weight: 700;
 }

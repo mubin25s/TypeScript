@@ -1,17 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import './SplashIntro.css';
 
 const SplashIntro = ({ onComplete }) => {
     const [isOpening, setIsOpening] = useState(false);
 
     useEffect(() => {
-        // Step 1: Wait a bit, then wobble
+        // Step 1: Start opening after 1.5s
         const timer = setTimeout(() => {
             setIsOpening(true);
         }, 1500);
 
-        // Step 2: Complete the intro
+        // Step 2: Call completion after 3s
         const finalTimer = setTimeout(() => {
             onComplete();
         }, 3000);
@@ -23,11 +22,7 @@ const SplashIntro = ({ onComplete }) => {
     }, [onComplete]);
 
     return (
-        <motion.div
-            className="splash-overlay"
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.8 }}
-        >
+        <div className="splash-overlay">
             <div className={`pokeball-intro ${isOpening ? 'open' : 'wobble'}`}>
                 <div className="pokeball-top"></div>
                 <div className="pokeball-bottom"></div>
@@ -36,17 +31,8 @@ const SplashIntro = ({ onComplete }) => {
                 </div>
             </div>
 
-            <AnimatePresence>
-                {isOpening && (
-                    <motion.div
-                        className="flash-light"
-                        initial={{ scale: 0, opacity: 0 }}
-                        animate={{ scale: 100, opacity: 1 }}
-                        transition={{ duration: 1.5, ease: "easeInOut" }}
-                    />
-                )}
-            </AnimatePresence>
-        </motion.div>
+            {isOpening && <div className="flash-light-static"></div>}
+        </div>
     );
 };
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { fetchAllPokemon, fetchPokemonDetails } from '../services/api';
 import PokemonCard from '../components/PokemonCard';
 import SkeletonCard from '../components/SkeletonCard';
@@ -7,64 +7,79 @@ import './Home.css';
 import { Search, ArrowUp } from 'lucide-react';
 
 const Home = () => {
+    // Persistent state keys
+    const SAVE_LIMIT_KEY = 'pokedex_limit';
+    const SAVE_SCROLL_KEY = 'pokedex_scroll_y';
+    const SAVE_SEARCH_KEY = 'pokedex_search';
+
     const [allPokemon, setAllPokemon] = useState([]);
     const [displayedList, setDisplayedList] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [limit, setLimit] = useState(20);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [inputBuffer, setInputBuffer] = useState('');
-    const [showScroll, setShowScroll] = useState(false);
 
-    // 1. Initial Fetch of ALL names - Only ONCE on mount
+    // Initialize from sessionStorage to maintain state across detail-view navigation
+    const [limit, setLimit] = useState(() => {
+        const saved = sessionStorage.getItem(SAVE_LIMIT_KEY);
+        return saved ? parseInt(saved, 10) : 20;
+    });
+
+    const [inputBuffer, setInputBuffer] = useState(() => {
+        return sessionStorage.getItem(SAVE_SEARCH_KEY) || '';
+    });
+
+    const [searchTerm, setSearchTerm] = useState(inputBuffer);
+    const [showScroll, setShowScroll] = useState(false);
+    const [isInitialLoad, setIsInitialLoad] = useState(true);
+
+    // 1. Initial Fetch of ALL names
     useEffect(() => {
         const loadAll = async () => {
             setLoading(true);
             try {
                 const data = await fetchAllPokemon();
                 setAllPokemon(data);
-                if (!data || data.length === 0) {
-                    setLoading(false);
-                }
             } catch (err) {
                 console.error("Failed to load pokemon list", err);
                 setError("Failed to connect to the PokéAPI.");
+            } finally {
                 setLoading(false);
             }
         };
         loadAll();
-    }, []); // Empty dependency array means this only runs once.
-
-    // 2. Scroll Listener - Clean and separate
-    useEffect(() => {
-        const checkScrollTop = () => {
-            if (window.pageYOffset > 400) {
-                setShowScroll(true);
-            } else {
-                setShowScroll(false);
-            }
-        };
-        window.addEventListener('scroll', checkScrollTop);
-        return () => window.removeEventListener('scroll', checkScrollTop);
     }, []);
 
-    // 3. Debounce Search Input
+    // 2. Scroll Listener & Position Saving
+    useEffect(() => {
+        const handleScroll = () => {
+            const currentScroll = window.pageYOffset;
+            setShowScroll(currentScroll > 400);
+            // Throttle saving scroll position
+            sessionStorage.setItem(SAVE_SCROLL_KEY, currentScroll.toString());
+        };
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
+    // 3. Debounce Search & Save State
     useEffect(() => {
         const timer = setTimeout(() => {
             setSearchTerm(inputBuffer);
-            setLimit(20);
+            sessionStorage.setItem(SAVE_SEARCH_KEY, inputBuffer);
+            // Don't reset limit if we're just restoring the page
+            if (!isInitialLoad) {
+                setLimit(20);
+                sessionStorage.setItem(SAVE_LIMIT_KEY, "20");
+            }
         }, 500);
         return () => clearTimeout(timer);
     }, [inputBuffer]);
 
-    // 4. Update Display List based on filter + limit
+    // 4. Update Display List & Restore Scroll
     useEffect(() => {
         if (allPokemon.length === 0) return;
 
         const updateDisplay = async () => {
             setLoading(true);
-            setError(null);
-
             const filtered = allPokemon.filter(p =>
                 p.name.toLowerCase().includes(searchTerm.toLowerCase())
             );
@@ -76,6 +91,18 @@ const Home = () => {
                     slice.map(p => fetchPokemonDetails(p.name))
                 );
                 setDisplayedList(details);
+
+                // If this is the first render with data, restore scroll position
+                if (isInitialLoad) {
+                    // Use a slightly longer delay to ensure all cards have finished mounting/rendering
+                    setTimeout(() => {
+                        const savedScroll = sessionStorage.getItem(SAVE_SCROLL_KEY);
+                        if (savedScroll) {
+                            window.scrollTo(0, parseInt(savedScroll, 10));
+                        }
+                        setIsInitialLoad(false);
+                    }, 50);
+                }
             } catch (err) {
                 console.error("Error fetching details subset", err);
                 setError("Error loading Pokémon details.");
@@ -92,7 +119,9 @@ const Home = () => {
     };
 
     const loadMore = () => {
-        setLimit(prev => prev + 20);
+        const newLimit = limit + 20;
+        setLimit(newLimit);
+        sessionStorage.setItem(SAVE_LIMIT_KEY, newLimit.toString());
     };
 
     const scrollTop = () => {
@@ -108,22 +137,9 @@ const Home = () => {
     };
 
     return (
-        <motion.div
-            className="home-container"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-        >
+        <div className="home-container">
             <header className="header">
-                <motion.h1
-                    className="title"
-                    initial={{ y: -50 }}
-                    animate={{ y: 0 }}
-                    transition={{ type: "spring", stiffness: 100 }}
-                >
-                    Pokédex
-                </motion.h1>
-
+                <h1 className="title">Pokédex</h1>
                 <div className="search-and-filter">
                     <div className="search-bar">
                         <Search size={20} color="#888" />
@@ -144,7 +160,7 @@ const Home = () => {
                     {displayedList.map((pokemon, index) => (
                         <motion.div
                             key={pokemon.id}
-                            initial={{ opacity: 0, scale: 0.9 }}
+                            initial={isInitialLoad ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.9 }}
                             transition={{ duration: 0.3, delay: (index % 10) * 0.05 }}
@@ -161,9 +177,7 @@ const Home = () => {
 
             {!loading && hasMore() && (
                 <div className="load-more-container">
-                    <button className="load-more-btn" onClick={scrollTop}>
-                        Back to Top
-                    </button>
+                    <button className="load-more-btn" onClick={scrollTop}>Back to Top</button>
                     <button className="load-more-btn" style={{ marginLeft: '1rem' }} onClick={loadMore}>
                         Load More
                     </button>
@@ -189,7 +203,7 @@ const Home = () => {
             {!loading && !error && displayedList.length === 0 && (
                 <div className="no-results">No Pokémon found.</div>
             )}
-        </motion.div>
+        </div>
     );
 };
 
