@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { fetchAllPokemon, fetchPokemonDetails } from '../services/api';
 import PokemonCard from '../components/PokemonCard';
 import Loader from '../components/Loader';
+import Pokeball from '../components/Pokeball';
 import { motion } from 'framer-motion';
 import './Home.css';
 import { Search } from 'lucide-react';
