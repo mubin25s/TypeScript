@@ -4,7 +4,10 @@ import './Loader.css';
 const Loader = () => {
     return (
         <div className="loader-container-flex">
-            <div className="pokemon-spinner"></div>
+            <div className="pokeball-loader-wrapper">
+                <div className="loader-background-glow"></div>
+                <div className="pokeball-loader"></div>
+            </div>
             <p className="loading-text">LOADING POKÉDEX...</p>
         </div>
     );
