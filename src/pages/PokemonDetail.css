@@ -2,7 +2,17 @@
   min-height: 100vh;
   position: relative;
   overflow: hidden;
-  background: #0a0a0c;
+  background: var(--bg-primary);
+  transition: background-color 0.8s ease;
+  z-index: 1000;
+}
+
+.detail-loader {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: var(--bg-primary);
 }
 
 .back-btn {

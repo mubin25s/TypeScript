@@ -42,26 +42,26 @@ const PokemonDetail = () => {
     const description = species?.flavor_text_entries?.find(entry => entry.language.name === 'en')?.flavor_text.replace(/\f/g, ' ');
 
     return (
-        <div className={`detail-container type-bg-${types[0].type.name}`}>
+        <motion.div
+            className="detail-container"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+        >
             <Link to="/" className="back-btn">
                 <ArrowLeft />
             </Link>
 
-            <motion.div
-                className="detail-card minimal-card"
-                initial={{ y: 50, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.5 }}
-            >
-                {species && evolutionChainData && (
+            <div className="detail-card minimal-card">
+                {pokemon && species && evolutionChainData && (
                     <GenerationViewer
                         initialPokemon={pokemon}
                         speciesData={species}
                         evolutionChain={evolutionChainData}
                     />
                 )}
-            </motion.div>
-        </div>
+            </div>
+        </motion.div>
     );
 };
 

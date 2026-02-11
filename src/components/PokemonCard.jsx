@@ -7,13 +7,14 @@ const PokemonCard = ({ pokemon, index }) => {
     const { id, name, types, sprites } = pokemon;
     const image = sprites?.other['official-artwork']?.front_default || sprites.front_default;
 
+    const mainType = types && types[0] ? types[0].type.name : 'normal';
+
     return (
         <Link to={`/pokemon/${name}`} className="card-link">
             <motion.div
-                className={`pokemon-card type-${types[0].type.name}`}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: index * 0.05 }}
+                className={`pokemon-card type-${mainType}`}
+                whileHover={{ y: -10, scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
             >
                 <div className="card-image-container">
                     <img src={image} alt={name} className="card-image" loading="lazy" />

@@ -1,42 +1,54 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { fetchAllPokemon, fetchPokemonDetails } from '../services/api';
 import PokemonCard from '../components/PokemonCard';
 import SkeletonCard from '../components/SkeletonCard';
-import Loader from '../components/Loader';
 import { motion, AnimatePresence } from 'framer-motion';
 import './Home.css';
-import { Search, Filter } from 'lucide-react';
-
-const POKEMON_TYPES = [
-    'all', 'grass', 'fire', 'water', 'bug', 'normal', 'poison', 'electric',
-    'ground', 'fairy', 'fighting', 'psychic', 'rock', 'ghost', 'ice',
-    'dragon', 'dark', 'steel', 'flying'
-];
+import { Search, ArrowUp } from 'lucide-react';
 
 const Home = () => {
     const [allPokemon, setAllPokemon] = useState([]);
     const [displayedList, setDisplayedList] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [limit, setLimit] = useState(20);
     const [searchTerm, setSearchTerm] = useState('');
     const [inputBuffer, setInputBuffer] = useState('');
-    const [selectedType, setSelectedType] = useState('all');
+    const [showScroll, setShowScroll] = useState(false);
 
-    // Initial Fetch of ALL names
+    // 1. Initial Fetch of ALL names - Only ONCE on mount
     useEffect(() => {
         const loadAll = async () => {
             setLoading(true);
             try {
                 const data = await fetchAllPokemon();
                 setAllPokemon(data);
-            } catch (error) {
-                console.error("Failed to load pokemon list", error);
+                if (!data || data.length === 0) {
+                    setLoading(false);
+                }
+            } catch (err) {
+                console.error("Failed to load pokemon list", err);
+                setError("Failed to connect to the PokéAPI.");
+                setLoading(false);
             }
         };
         loadAll();
+    }, []); // Empty dependency array means this only runs once.
+
+    // 2. Scroll Listener - Clean and separate
+    useEffect(() => {
+        const checkScrollTop = () => {
+            if (window.pageYOffset > 400) {
+                setShowScroll(true);
+            } else {
+                setShowScroll(false);
+            }
+        };
+        window.addEventListener('scroll', checkScrollTop);
+        return () => window.removeEventListener('scroll', checkScrollTop);
     }, []);
 
-    // Debounce Search Input
+    // 3. Debounce Search Input
     useEffect(() => {
         const timer = setTimeout(() => {
             setSearchTerm(inputBuffer);
@@ -45,24 +57,17 @@ const Home = () => {
         return () => clearTimeout(timer);
     }, [inputBuffer]);
 
-    // Update Display List based on filter + limit + type
+    // 4. Update Display List based on filter + limit
     useEffect(() => {
         if (allPokemon.length === 0) return;
 
         const updateDisplay = async () => {
             setLoading(true);
+            setError(null);
 
-            let filtered = allPokemon.filter(p =>
+            const filtered = allPokemon.filter(p =>
                 p.name.toLowerCase().includes(searchTerm.toLowerCase())
             );
-
-            // Fetch details for initial filtering by type if needed
-            // This is tricky because we only have names initially.
-            // For a smoother experience, we'll fetch details as we scroll
-            // but for type filtering we might need more.
-            // Optimization: If a type is selected, we filter by that type.
-            // API limitation: Filtering by type requires a different endpoint or fetching all details.
-            // Let's keep it simple: search and limit for now, and only show type badges.
 
             const slice = filtered.slice(0, limit);
 
@@ -70,22 +75,17 @@ const Home = () => {
                 const details = await Promise.all(
                     slice.map(p => fetchPokemonDetails(p.name))
                 );
-
-                // Client-side type filter
-                const typeFiltered = selectedType === 'all'
-                    ? details
-                    : details.filter(p => p.types.some(t => t.type.name === selectedType));
-
-                setDisplayedList(typeFiltered);
+                setDisplayedList(details);
             } catch (err) {
                 console.error("Error fetching details subset", err);
+                setError("Error loading Pokémon details.");
             } finally {
                 setLoading(false);
             }
         };
 
         updateDisplay();
-    }, [searchTerm, limit, allPokemon, selectedType]);
+    }, [searchTerm, limit, allPokemon]);
 
     const handleSearch = (e) => {
         setInputBuffer(e.target.value);
@@ -93,6 +93,10 @@ const Home = () => {
 
     const loadMore = () => {
         setLimit(prev => prev + 20);
+    };
+
+    const scrollTop = () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     const hasMore = () => {
@@ -125,39 +129,25 @@ const Home = () => {
                         <Search size={20} color="#888" />
                         <input
                             type="text"
-                            placeholder="Search Pokemon..."
+                            placeholder="Search Pokémon..."
                             value={inputBuffer}
                             onChange={handleSearch}
                         />
                     </div>
-
-                    <div className="type-filters-scroll">
-                        {POKEMON_TYPES.map(type => (
-                            <button
-                                key={type}
-                                className={`type-filter-btn ${selectedType === type ? 'active' : ''} type-color-${type}`}
-                                onClick={() => {
-                                    setSelectedType(type);
-                                    setLimit(20);
-                                }}
-                            >
-                                {type}
-                            </button>
-                        ))}
-                    </div>
                 </div>
             </header>
+
+            {error && <div className="error-message">{error}</div>}
 
             <div className="pokemon-grid">
                 <AnimatePresence mode='popLayout'>
                     {displayedList.map((pokemon, index) => (
                         <motion.div
                             key={pokemon.id}
-                            layout
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.9 }}
-                            transition={{ duration: 0.3, delay: index % 10 * 0.05 }}
+                            transition={{ duration: 0.3, delay: (index % 10) * 0.05 }}
                         >
                             <PokemonCard pokemon={pokemon} index={index} />
                         </motion.div>
@@ -171,14 +161,33 @@ const Home = () => {
 
             {!loading && hasMore() && (
                 <div className="load-more-container">
-                    <button className="load-more-btn" onClick={loadMore}>
+                    <button className="load-more-btn" onClick={scrollTop}>
+                        Back to Top
+                    </button>
+                    <button className="load-more-btn" style={{ marginLeft: '1rem' }} onClick={loadMore}>
                         Load More
                     </button>
                 </div>
             )}
 
-            {!loading && displayedList.length === 0 && (
-                <div className="no-results">No Pokémon match your filters.</div>
+            <AnimatePresence>
+                {showScroll && (
+                    <motion.button
+                        className="scroll-top-btn"
+                        onClick={scrollTop}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 20 }}
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                    >
+                        <ArrowUp />
+                    </motion.button>
+                )}
+            </AnimatePresence>
+
+            {!loading && !error && displayedList.length === 0 && (
+                <div className="no-results">No Pokémon found.</div>
             )}
         </motion.div>
     );
