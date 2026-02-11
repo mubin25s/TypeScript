@@ -41,7 +41,7 @@ const SplashIntro = ({ onComplete }) => {
                     <motion.div
                         className="flash-light"
                         initial={{ scale: 0, opacity: 0 }}
-                        animate={{ scale: 10, opacity: 1 }}
+                        animate={{ scale: 100, opacity: 1 }}
                         transition={{ duration: 1.5, ease: "easeInOut" }}
                     />
                 )}
