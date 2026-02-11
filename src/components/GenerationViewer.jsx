@@ -196,16 +196,6 @@ const GenerationViewer = ({ initialPokemon, speciesData, evolutionChain }) => {
 
             <div className="gen-tag">{generation}</div>
 
-            <motion.h1
-                className="background-name"
-                key={name + "-bg"}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.8 }}
-            >
-                {name}
-            </motion.h1>
-
             <div className="carousel-area">
                 {currentIndex > 0 && (
                     <button className="nav-arrow nav-left" onClick={prevForm}>
